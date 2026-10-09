@@ -1,0 +1,58 @@
+name: Horoshop sync (tactic-shop feed)
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'   # кожні 3 години (UTC)
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Ліміт груп товарів для тесту (0 = всі)'
+        default: '0'
+      discover:
+        description: 'Лише показати коди характеристик і статуси (1 = так)'
+        default: '0'
+
+concurrency:
+  group: horoshop-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+
+      # Кеш перекладів і список артикулів попереднього фіду
+      - uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: sync-state-${{ github.run_id }}
+          restore-keys: sync-state-
+
+      - run: node sync.mjs
+        env:
+          HOROSHOP_DOMAIN: tacgear.com.ua
+          HOROSHOP_LOGIN: ${{ secrets.HOROSHOP_LOGIN }}
+          HOROSHOP_PASSWORD: ${{ secrets.HOROSHOP_PASSWORD }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LIMIT: ${{ github.event.inputs.limit || '0' }}
+          DISCOVER: ${{ github.event.inputs.discover || '0' }}
+
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: state
+          key: sync-state-${{ github.run_id }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sync-report
+          path: out/report.json
+          if-no-files-found: ignore
+          retention-days: 14
