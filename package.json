@@ -1,0 +1,13 @@
+{
+  "name": "tacgear-horoshop-sync",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "node sync.mjs",
+    "test": "DRY_RUN=1 LIMIT=20 node sync.mjs",
+    "discover": "DISCOVER=1 node sync.mjs"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": { "fast-xml-parser": "4.5.0" }
+}
