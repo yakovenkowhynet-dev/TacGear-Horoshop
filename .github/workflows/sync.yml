@@ -2,7 +2,7 @@ name: Horoshop sync (tactic-shop feed)
 
 on:
   schedule:
-    - cron: '0 */3 * * *'   # кожні 3 години (UTC)
+    - cron: '0 */24 * * *'   # кожні 3 години (UTC)
   workflow_dispatch:
     inputs:
       limit:
